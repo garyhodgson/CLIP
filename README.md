@@ -1,22 +1,27 @@
-# CLIP - CubeSensors Logstash Input Plugin
+# CubeSensors Logstash Input Plugin
 
-[![CLIP - Kibana](https://raw.githubusercontent.com/peyerc/CLIP/master/clip_kibana.png)](https://raw.githubusercontent.com/peyerc/CLIP/master/clip_kibana.png)
+![Kibana](/clip_kibana.png?raw=true)
 
-CLIP is an input plugin for Logstash which collects cube data from your
-CubeSensors account.
-
-To configure CLIP you need first to get the OAuth credentials for your
-CubeSensors account.
+An input plugin for Logstash which collects cube data from your CubeSensors account.
 
 ## Dependencies
 
-CLIP is using the OAuth gem: https://rubygems.org/gems/oauth
+The plugin uses the OAuth gem: https://rubygems.org/gems/oauth
 
 ## Configuration
 
+To configure the plugin you need first to get the OAuth credentials for your CubeSensors account.
+
+If you have python installed then `scripts/cubesensors_get_access_token.py` may be of use.
+
+Install the rauth dependency, run the script, follow the instructions, and you will get the OAuth app token and secret.
+
+
+### Options
+
 **debug**
-If set to true CLIP is logging debug output.
- 
+If set to true debug logging it produced.
+
 **consumer_key**
 The OAuth consumer key.
 
@@ -32,9 +37,9 @@ The OAuth app token secret.
 **interval**
 The poll interval in second.
 
-### Input filter configuration example
+### Example
 	input {
-		clip {
+		cubesensors {
 			debug => false
 			consumer_key => "abc123"
 			consumer_secret => "acacacacac12121212"
@@ -44,6 +49,27 @@ The poll interval in second.
 		}
 	}
 
+  filter {
     date {
     	match => [ "time", "ISO8601" ]
     }
+  }
+
+## Installing
+
+    cd <location of logstash>
+    ./bin/plugin.bat install <location of cubesensors plugin>/logstash-input-cubesensors-0.0.1.gem
+
+
+## Building
+
+If ruby is not installed then one can use logstash's JRuby:
+
+    alias jruby=<location of logstashs>/vendor/jruby/bin/jruby.exe
+
+Build the gem:
+
+    cd <location of cubesensors plugin>
+    jruby -S gem build logstash-input-cubesensors.gemspec
+
+See also: https://github.com/logstash-plugins/logstash-input-example

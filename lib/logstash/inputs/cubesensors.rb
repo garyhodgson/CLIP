@@ -1,14 +1,15 @@
 # encoding: utf-8
 require "logstash/inputs/base"
 require "logstash/namespace"
+require "stud/interval"
 require "oauth"
 require "json"
 
 # Poll CubeSensors for the given keys.
 #
-class LogStash::Inputs::Clip < LogStash::Inputs::Base
+class LogStash::Inputs::Cubesensors < LogStash::Inputs::Base
 
-  config_name "clip"
+  config_name "cubesensors"
 
   milestone 1
 
@@ -44,11 +45,9 @@ class LogStash::Inputs::Clip < LogStash::Inputs::Base
   public
   def run(queue)
 
-    loop do
+    while !stop?
       start = Time.now
       @logger.info? && @logger.info("Polling CBSR", :consumer_key => @consumer_key)
-      #GET data
-
 
       # The consumer key and consumer secret are the identifiers for this particular application, and are
       # issued when the application is registered with the site. Use your own.
@@ -77,11 +76,11 @@ class LogStash::Inputs::Clip < LogStash::Inputs::Base
       end
 
       dev["devices"].each do |device|
-      cubeCur = JSON.parse(@access_token.get("/v1/devices/" + device["uid"] + "/current").body)
+        cubeCur = JSON.parse(@access_token.get("/v1/devices/" + device["uid"] + "/current").body)
 
-      # get all data for the current device
-      if @debug
-      puts "Cube: " + device["extra"]["name"] + "(" + device["uid"] + ")"
+        # get all data for the current device
+        if @debug
+          puts "Cube: " + device["extra"]["name"] + "(" + device["uid"] + ")"
         end
 
         # create an event
@@ -117,10 +116,19 @@ class LogStash::Inputs::Clip < LogStash::Inputs::Base
                      :consumer_key => @consumer_key, :duration => duration,
                      :interval => @interval)
       else
-        sleep(sleeptime)
+        Stud.stoppable_sleep(@interval) { stop? }
       end
     end # loop
 
   end # def run
 
-end # class LogStash::Inputs::Clip
+
+  def stop
+    # nothing to do in this case so it is not necessary to define stop
+    # examples of common "stop" tasks:
+    #  * close sockets (unblocking blocking reads/accepts)
+    #  * cleanup temporary files
+    #  * terminate spawned threads
+  end
+
+end # class LogStash::Inputs::Cubesensors
